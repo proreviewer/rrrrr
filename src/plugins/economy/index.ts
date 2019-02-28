@@ -1,15 +1,21 @@
-import { GuildMember } from 'discord.js'
+import { GuildMember, Snowflake, Guild } from 'discord.js'
 import CommandManager from '../../commandManager'
 import { getDatabase } from '../mongo'
 
-import { commandEconomy } from './commands'
+import { commandSetMoney, commandEconomy, commandPay } from './commands'
 
 export async function onLoad () {
-  CommandManager.registerCommand('economy', commandEconomy)
+  CommandManager.registerCommand('setmoney', commandSetMoney)
+  CommandManager.registerCommand('economy', commandEconomy, {
+    aliases: [ 'money' ]
+  })
+  CommandManager.registerCommand('pay', commandPay)
 }
 
 export async function onUnload () {
+  CommandManager.unregisterCommand('setmoney')
   CommandManager.unregisterCommand('economy')
+  CommandManager.unregisterCommand('pay')
 }
 
 /**
@@ -33,12 +39,48 @@ export async function getBalance (member: GuildMember): Promise<number> {
  */
 export async function setBalance (member: GuildMember, balance: number) {
   const collection = getDatabase().collection('economy')
-  const result = await collection.findOneAndUpdate({
+  await collection.updateOne({
     guild: member.guild.id,
     member: member.id
   }, { '$set': { balance } }, { upsert: true })
+}
 
-  if (result.ok !== 1) {
-    throw new Error(result.lastErrorObject)
+/**
+ * 멤버의 잔액을 추가합니다.
+ * @param member 멤버 객체
+ * @param balance 추가할 잔액
+ */
+export async function increaseBalance (member: GuildMember, balance: number) {
+  const collection = getDatabase().collection('economy')
+  await collection.updateOne({
+    guild: member.guild.id,
+    member: member.id
+  }, { '$inc': { balance } }, { upsert: true })
+}
+
+/**
+ * 멤버 잔액을 줄입니다.
+ * @param member 멤버 객체
+ * @param balance 뺄 객체
+ */
+export async function decreaseBalance (member: GuildMember, balance: number) {
+  await increaseBalance(member, -balance)
+}
+
+/**
+ * 멤버로부터 다른 멤버에게 돈을 전달합니다.
+ * @param fromMember 보낼 멤버 객체
+ * @param toMember 받을 멤버 객체
+ * @param amount 양
+ */
+export async function pay (fromMember: GuildMember, toMember: GuildMember, amount: number) {
+  const fromBalance = await getBalance(fromMember)
+  const toBalance = await getBalance(toMember)
+
+  if (fromBalance < amount) {
+    throw new Error('보내는 사람의 잔액이 부족합니다.')
   }
+
+  await decreaseBalance(fromMember, amount)
+  await increaseBalance(toMember, amount)
 }

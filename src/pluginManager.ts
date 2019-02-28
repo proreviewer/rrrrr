@@ -1,3 +1,4 @@
+import { dirname } from 'path'
 import logger from './logger'
 
 interface Plugin extends PluginMetadata {
@@ -40,14 +41,21 @@ export default class PluginManager {
     }
 
     const path = './plugins/' + pluginName
+    const pathDir = dirname(require.resolve(path))
     const plugin: Plugin = require(path)
 
     if (plugin.onUnload) {
       await plugin.onUnload()
     }
 
-    delete require.cache[require.resolve(path)]
     metadatas.delete(pluginName)
+    
+    // 캐시 지우기
+    for (let cachePath in require.cache) {
+      if (cachePath.startsWith(pathDir)) {
+        delete require.cache[cachePath]
+      }
+    }
 
     logger.info(pluginName + ' 플러그인을 해제했습니다.')
   }
