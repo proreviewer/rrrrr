@@ -3,18 +3,18 @@ import * as moment from 'moment'
 import { RichEmbed } from 'discord.js'
 import PluginManager from '../../pluginManager'
 import { ComamndCallback } from '../../commandManager'
-import { resolveUser, isOwner } from '../../utils'
+import { isOwner, resolveMembers } from '../../utils'
 import { getBalance } from '../economy'
 
 moment.locale('ko')
 
 export const commandLoad: ComamndCallback = async (cmd, args, executor, message) => {
-  const name: string = args.name || args._.slice(1).join(' ')
-
   if (!isOwner(executor)) {
     message.reply('권한이 없습니다.')
     return false
   }
+
+  const name: string = args.name || args._.slice(1).join(' ')
 
   try {
     await PluginManager.load(name)
@@ -28,12 +28,12 @@ export const commandLoad: ComamndCallback = async (cmd, args, executor, message)
 }
 
 export const commandReload: ComamndCallback = async (cmd, args, executor, message) => {
-  const name: string = args.name || args._.slice(1).join(' ')
-
   if (!isOwner(executor)) {
     message.reply('권한이 없습니다.')
     return false
   }
+
+  const name: string = args.name || args._.slice(1).join(' ')
 
   try {
     await PluginManager.unload(name)
@@ -48,12 +48,12 @@ export const commandReload: ComamndCallback = async (cmd, args, executor, messag
 }
 
 export const commandUnload: ComamndCallback = async (cmd, args, executor, message) => {
-  const name: string = args.name || args._.slice(1).join(' ')
-
   if (!isOwner(executor)) {
     message.reply('권한이 없습니다.')
     return false
   }
+
+  const name: string = args.name || args._.slice(1).join(' ')
 
   try {
     await PluginManager.unload(name)
@@ -68,22 +68,27 @@ export const commandUnload: ComamndCallback = async (cmd, args, executor, messag
 
 export const commandWhois: ComamndCallback = async (cmd, args, executor, message) => {
   const name: string = args.name || args._.slice(1).join(' ') || executor
-  const user = resolveUser(name, message.guild)
+  const members = resolveMembers(name, message.guild)
 
-  if (!user) {
+  if (members.length === 0) {
     message.reply('사용자를 찾을 수 없습니다.')
     return false
   }
 
-  const member = message.guild.member(user)
+  if (members.length > 1) {
+    message.reply('여러 사용자가 존재합니다, 정확히 선택해주세요.')
+    return false
+  }
+
+  const member = members[0]
   const embed = new RichEmbed()
 
-  embed.setTitle(`${user.username}#${user.discriminator}`)
+  embed.setTitle(`${member.user.username}#${member.user.discriminator}`)
   embed.setDescription(member.displayName)
   embed.setColor(member.displayHexColor)
-  embed.setThumbnail(user.displayAvatarURL)
+  embed.setThumbnail(member.user.displayAvatarURL)
 
-  const createdAt = moment(user.createdTimestamp)
+  const createdAt = moment(member.user.createdTimestamp)
   embed.addField('가입일', `${createdAt.fromNow()} (${createdAt.format('llll')})`)
 
   const joinedAt = moment(member.joinedTimestamp)
@@ -91,7 +96,7 @@ export const commandWhois: ComamndCallback = async (cmd, args, executor, message
 
   embed.addField('역할', member.roles.map(role => role.name).join(', '))
 
-  if (PluginManager.get('economy')) {
+  if (!member.user.bot && PluginManager.get('economy')) {
     const balance = numeral(await getBalance(member))
     embed.addField('잔액', balance.format('0,0') + '원')
   }

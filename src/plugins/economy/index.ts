@@ -2,20 +2,22 @@ import { GuildMember, Snowflake, Guild } from 'discord.js'
 import CommandManager from '../../commandManager'
 import { getDatabase } from '../mongo'
 
-import { commandSetMoney, commandEconomy, commandPay } from './commands'
+import { commandSetMoney, commandAddMoney, commandMoney, commandPay, commandTop } from './commands'
 
 export async function onLoad () {
   CommandManager.registerCommand('setmoney', commandSetMoney)
-  CommandManager.registerCommand('economy', commandEconomy, {
-    aliases: [ 'money' ]
-  })
+  CommandManager.registerCommand('addmoney', commandAddMoney)
+  CommandManager.registerCommand('money', commandMoney)
   CommandManager.registerCommand('pay', commandPay)
+  CommandManager.registerCommand('top', commandTop)
 }
 
 export async function onUnload () {
   CommandManager.unregisterCommand('setmoney')
-  CommandManager.unregisterCommand('economy')
+  CommandManager.unregisterCommand('addmoney')
+  CommandManager.unregisterCommand('money')
   CommandManager.unregisterCommand('pay')
+  CommandManager.unregisterCommand('top')
 }
 
 /**
