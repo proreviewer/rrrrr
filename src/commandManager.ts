@@ -118,6 +118,7 @@ class CommandManager {
       args = cmd.options.parser(content)
     } else {
       args = minimist(shlex(content))
+      args._ = args._.slice(1)
     }
 
     const result = await cmd.callback(name, args, executor, message)
