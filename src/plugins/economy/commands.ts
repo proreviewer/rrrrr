@@ -6,23 +6,23 @@ import { getBalance, setBalance, pay, increaseBalance } from './'
 
 export const commandSetMoney: ComamndCallback = async function (cmd, args, executor, message) {
   if (!isOwner(executor)) {
-    message.reply('권한이 없습니다.')
+    await message.reply('권한이 없습니다.')
     return false
   }
 
-  const name = args.to || args._[1]
-  const amount = numeral(args.amount || args._[2])
+  const name = args._[0]
+  const amount = numeral(args._[1])
 
   const members = resolveMembers(name, message.guild)
 
   if (members.length === 0) {
-    message.reply('사용자를 찾을 수 없습니다.')
+    await message.reply('사용자를 찾을 수 없습니다.')
     return false
   } else if (members.length > 1) {
-    message.reply('여러 사용자가 존재합니다, 정확히 선택해주세요.')
+    await message.reply('여러 사용자가 존재합니다, 정확히 선택해주세요.')
     return false
   } else if (members[0].user.bot) {
-    message.reply('봇은 선택할 수 없습니다.')
+    await message.reply('봇은 선택할 수 없습니다.')
     return false
   }
 
@@ -34,23 +34,23 @@ export const commandSetMoney: ComamndCallback = async function (cmd, args, execu
 
 export const commandAddMoney: ComamndCallback = async function (cmd, args, executor, message) {
   if (!isOwner(executor)) {
-    message.reply('권한이 없습니다.')
+    await message.reply('권한이 없습니다.')
     return false
   }
 
-  const name = args.to || args._[1]
-  const amount = numeral(args.amount || args._[2])
+  const name = args._[0]
+  const amount = numeral(args._[1])
 
   const members = resolveMembers(name, message.guild)
 
   if (members.length === 0) {
-    message.reply('사용자를 찾을 수 없습니다.')
+    await message.reply('사용자를 찾을 수 없습니다.')
     return false
   } else if (members.length > 1) {
-    message.reply('여러 사용자가 존재합니다, 정확히 선택해주세요.')
+    await message.reply('여러 사용자가 존재합니다, 정확히 선택해주세요.')
     return false
   } else if (members[0].user.bot) {
-    message.reply('봇은 선택할 수 없습니다.')
+    await message.reply('봇은 선택할 수 없습니다.')
     return false
   }
 
@@ -62,19 +62,19 @@ export const commandAddMoney: ComamndCallback = async function (cmd, args, execu
 
 export const commandMoney: ComamndCallback = async function (command, args, executor, message) {
   let target = executor
-  const name = args.to || args._[1]
+  const name = args.to || args._[0]
 
   if (name) {
     const members = resolveMembers(name, message.guild)
-    
+
     if (members.length === 0) {
-      message.reply('사용자를 찾을 수 없습니다.')
+      await message.reply('사용자를 찾을 수 없습니다.')
       return false
     } else if (members.length > 1) {
-      message.reply('여러 사용자가 존재합니다, 정확히 선택해주세요.')
+      await message.reply('여러 사용자가 존재합니다, 정확히 선택해주세요.')
       return false
     } else if (members[0].user.bot) {
-      message.reply('봇은 선택할 수 없습니다.')
+      await message.reply('봇은 선택할 수 없습니다.')
       return false
     }
 
@@ -87,27 +87,27 @@ export const commandMoney: ComamndCallback = async function (command, args, exec
 }
 
 export const commandPay: ComamndCallback = async function (cmd, args, executor, message) {
-  const name = args.to || args._[1]
-  const amount = numeral(args.amount || args._[2])
+  const name = args.to || args._[0]
+  const amount = numeral(args.amount || args._[1])
 
   if (amount.value() <= 0) {
-    message.reply('보낼 금액이 너무 적습니다.')
+    await message.reply('보낼 금액이 너무 적습니다.')
     return false
   }
 
   const members = resolveMembers(name, message.guild)
 
   if (members.length === 0) {
-    message.reply('사용자를 찾을 수 없습니다.')
+    await message.reply('사용자를 찾을 수 없습니다.')
     return false
   } else if (members.length > 1) {
-    message.reply('여러 사용자가 존재합니다, 정확히 선택해주세요.')
+    await message.reply('여러 사용자가 존재합니다, 정확히 선택해주세요.')
     return false
   } else if (members[0].user.bot) {
-    message.reply('봇은 선택할 수 없습니다.')
+    await message.reply('봇은 선택할 수 없습니다.')
     return false
   } else if (members[0].id === executor.id) {
-    message.reply('자신에게 보낼 수 없습니다.')
+    await message.reply('자신에게 보낼 수 없습니다.')
     return false
   }
 
@@ -119,7 +119,7 @@ export const commandPay: ComamndCallback = async function (cmd, args, executor, 
 
 export const commandTop: ComamndCallback = async function (command, args, executor, message) {
   const collection = getDatabase().collection('economy')
-  const data = await collection.find({ guild: message.guild.id }).sort({ balance: -1 })
+  const data = collection.find({ guild: message.guild.id }).sort({ balance: -1 })
 
   if (data) {
     const text = []
@@ -143,7 +143,7 @@ export const commandTop: ComamndCallback = async function (command, args, execut
 
     text.unshift('---')
     text.unshift(message.guild.name + ' 길드 가치: ' + serverBalance.format('0,0'))
-  
+
     await message.channel.send('```markdown\n' + text.join('\n') + '```')
     return true
   }

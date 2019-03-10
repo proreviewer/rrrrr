@@ -1,8 +1,11 @@
-import { config } from 'dotenv'
+import * as dotenv from 'dotenv'
+dotenv.config()
+
 import { exitHandler } from './handler'
 import client from './client'
+import logger from './logger'
 
-config()
+logger.info('Started...')
 
 client.login(process.env.TOKEN)
   .catch(e => exitHandler(1, e))

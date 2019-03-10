@@ -69,3 +69,22 @@ export function isOwner (target: UserResolvable) {
 
   return false
 }
+
+/**
+ * 변수를 안전한 문자열로 변환합니다.
+ * @param x
+ */
+export function safeToString (x: any) {
+  if (x === null) {
+    return 'null'
+  }
+
+  switch (typeof x) {
+    case 'object':
+      return 'object'
+    case 'function':
+      return 'function'
+    default:
+      return x + ''
+  }
+}
