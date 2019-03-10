@@ -7,6 +7,22 @@ import CommandManager from './commandManager'
 
 const client = new Client()
 
+async function onMessage (message) {
+  const prefix = '>' // 이후에 길드 또는 채널 별로 바뀔 수 있으니 미리 빼둠
+  
+  if (message.content.startsWith(prefix)) {
+    const content = message.content.replace(new RegExp('^' + prefix), '')
+    const command = content.split(' ', 1)[0]
+
+    try {
+      await CommandManager.execute(command, content, message)
+    } catch (e) {
+      logger.error(errorHandler(e))
+      await message.reply(e.message)
+    }
+  }
+}
+
 client.on('ready', async () => {
   logger.info(`Hello, ${client.user.username}#${client.user.discriminator} (${client.user.id})`)
 
@@ -21,22 +37,8 @@ client.on('ready', async () => {
       logger.error(plugin + ' 플러그인을 불러오는 중 오류가 발생했습니다: ' + errorHandler(e))
     }
   }
-})
-
-client.on('message', async message => {
-  const prefix = '>' // 이후에 길드 또는 채널 별로 바뀔 수 있으니 미리 빼둠
-
-  if (message.content.startsWith(prefix)) {
-    const content = message.content.replace(new RegExp('^' + prefix), '')
-    const command = content.split(' ', 1)[0]
-
-    try {
-      await CommandManager.execute(command, content, message)
-    } catch (e) {
-      logger.error(errorHandler(e))
-      await message.reply(e.message)
-    }
-  }
+  
+  client.on('message', onMessage)
 })
 
 export default client
