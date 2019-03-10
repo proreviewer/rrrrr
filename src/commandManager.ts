@@ -7,6 +7,7 @@ export type ComamndCallback = (command: string, args: any, executor: GuildMember
   Promise<boolean>
 
 interface CommandOptions {
+  delay?: 1000,
   aliases?: string[],
   parser?: (raw: string) => any
 }
@@ -18,6 +19,7 @@ interface CommandMetadata {
 
 const commands = new Map<string, CommandMetadata>()
 const aliases = new Map<string, string>()
+const delays = new Map<string, number>()
 
 class CommandManager {
   /**
@@ -103,10 +105,15 @@ class CommandManager {
    * @param message 객체
    */
   static async execute (name: string, content: string, message: Message): Promise<boolean> {
-    const cmd = this.resolve(name)
     const executor = message.guild.member(message.author)
+    const cmd = this.resolve(name)
 
     if (!cmd) {
+      return false
+    }
+
+    if (delays.has(executor.id)) {
+      message.reply('명령어를 너무 빨리 보내고 있습니다.')
       return false
     }
 
@@ -114,6 +121,7 @@ class CommandManager {
 
     let args
 
+    // 인자 값 파싱
     if (typeof cmd.options.parser === 'function') {
       args = cmd.options.parser(content)
     } else {
@@ -121,6 +129,13 @@ class CommandManager {
     }
 
     const result = await cmd.callback(name, args, executor, message)
+
+    // 딜레이 추가
+    delays.set(executor.id, Date.now())
+    setTimeout(() => {
+      delays.delete(executor.id)
+    }, cmd.options.delay || 3000);
+
     return result
   }
 }
