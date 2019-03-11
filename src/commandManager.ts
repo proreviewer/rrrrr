@@ -113,7 +113,7 @@ class CommandManager {
     }
 
     if (delays.has(executor.id)) {
-      message.reply('명령어를 너무 빨리 보내고 있습니다.')
+      await message.reply('명령어를 너무 빨리 보내고 있습니다.')
       return false
     }
 
@@ -125,7 +125,7 @@ class CommandManager {
     if (typeof cmd.options.parser === 'function') {
       args = cmd.options.parser(content)
     } else {
-      args = minimist(shlex(content))
+      args = minimist(shlex(content), { string: ['_'] })
       args._ = args._.slice(1)
     }
 

@@ -19,6 +19,7 @@ export function resolveMembers (query: GuildMemberResolvable, guild: Guild): Gui
   if (user) {
     result.push(guild.member(user))
   } else if (typeof query === 'string') {
+    console.log(query)
     if (members.has(query)) {
       // 아이디
       result.push(members.get(query))
@@ -46,8 +47,10 @@ export function resolveRoles (query: RoleResolvable, guild: Guild): Role[] {
   const result = []
 
   if (roles.has(query)) {
+    // 아이디
     result.push(roles.get(query))
   } else {
+    // 이름
     const rolesArray = roles.array()
     for (let i = 0, len = rolesArray.length; i < len; i++) {
       const role = rolesArray[i]

@@ -9,6 +9,10 @@ import { getMetadata } from './plugins/metadata'
 const client = new Client()
 
 async function onMessage (message) {
+  if (message.author.bot) {
+    return
+  }
+
   let prefix = process.env.PREFIX
 
   // 길드의 접두사 가져오기
